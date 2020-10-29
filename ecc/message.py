@@ -1,5 +1,6 @@
 import bitarray
 from pydantic import validate_arguments, StrictInt
+from typing import List
 
 
 class bit_array():
@@ -24,13 +25,14 @@ class Message():
     @validate_arguments
     def __init__(self, encoding: str = 'utf-8') -> None:
         """
-        Stores Message encoding attribute.
+        Stores Message encoding attribute and creates the mapping used for uint8 to bit and vice-versa conversion.
 
         Args:
             encoding: Encoding to be used.
         """
 
         self.encoding = encoding
+        self.uint2bit_mapping = {x: bitarray.bitarray('{:08b}'.format(x)) for x in range(256)}
 
     @validate_arguments
     def to_bits(self, msg: str) -> bit_array:
@@ -62,6 +64,39 @@ class Message():
         """
 
         return bits.tobytes().decode(self.encoding)
+
+    @validate_arguments
+    def bits2uint8(self, bits: bit_array) -> List[StrictInt]:
+        """
+        Converts a bit array into a list of unsigned integers of 8 bits each, ranging from 0 to 255.
+
+        Args:
+            bits: Bit array to be converted to list of uint8 integers.
+
+        Returns:
+            List of integers.
+        """
+
+        assert len(bits) % 8 == 0, ' Length of sequence of bits must be a multiple of 8.'
+
+        return bits.decode(self.uint2bit_mapping)
+
+    @validate_arguments
+    def uint8_2bits(self, uints8: List[StrictInt]) -> bit_array:
+        """
+        Converts a list of unsigned integers (each taking values from 0 to 255) to a bitarray. Each unsigned integer is encoded in 8 bits.
+
+        Args:
+            uints8: List of uint8 integers that will be mapped to a bitarray.
+
+        Returns:
+            Bitarray.
+        """
+
+        ba = bitarray.bitarray()
+        ba.encode(self.uint2bit_mapping, uints8)
+
+        return ba
 
     @validate_arguments
     def negate(self, bits: bit_array, *args: StrictInt) -> bit_array:
