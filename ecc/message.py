@@ -32,7 +32,7 @@ class Message():
         """
 
         self.encoding = encoding
-        self.uint2bit_mapping = {x: bitarray.bitarray('{:08b}'.format(x)) for x in range(256)}
+        self.int2bit_mapping = {x: bitarray.bitarray('{:08b}'.format(x)) for x in range(256)}
 
     @validate_arguments
     def to_bits(self, msg: str) -> bit_array:
@@ -66,12 +66,13 @@ class Message():
         return bits.tobytes().decode(self.encoding)
 
     @validate_arguments
-    def bits2uint8(self, bits: bit_array) -> List[StrictInt]:
+    def bits2int(self, bits: bit_array) -> List[StrictInt]:
         """
-        Converts a bit array into a list of unsigned integers of 8 bits each, ranging from 0 to 255.
+        Converts a bit array into a list of integers. Each integer is decoded after
+        8 consecutive bits, therefore all range from 0 to 255.
 
         Args:
-            bits: Bit array to be converted to list of uint8 integers.
+            bits: Bit array to be converted to list of integers.
 
         Returns:
             List of integers.
@@ -79,22 +80,23 @@ class Message():
 
         assert len(bits) % 8 == 0, ' Length of sequence of bits must be a multiple of 8.'
 
-        return bits.decode(self.uint2bit_mapping)
+        return bits.decode(self.int2bit_mapping)
 
     @validate_arguments
-    def uint8_2bits(self, uints8: List[StrictInt]) -> bit_array:
+    def int2bits(self, uints8: List[StrictInt]) -> bit_array:
         """
-        Converts a list of unsigned integers (each taking values from 0 to 255) to a bitarray. Each unsigned integer is encoded in 8 bits.
+        Converts a list of integers (each taking values from 0 to 255) to a bitarray.
+        Each integer is encoded in 8 bits.
 
         Args:
-            uints8: List of uint8 integers that will be mapped to a bitarray.
+            uints8: List of integers that will be mapped to a bitarray.
 
         Returns:
             Bitarray.
         """
 
         ba = bitarray.bitarray()
-        ba.encode(self.uint2bit_mapping, uints8)
+        ba.encode(self.int2bit_mapping, uints8)
 
         return ba
 
